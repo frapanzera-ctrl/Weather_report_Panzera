@@ -1,10 +1,10 @@
-"""Data models used in the weather report"""
+"""Data models used in the weather report."""
 
 from dataclasses import dataclass
 
 @dataclass(frozen=True)
 class City:
-    """A city for wich weather data is downloaded.
+    """A city for which weather data is downloaded.
     
     Attributes
     ----------
@@ -21,9 +21,9 @@ class City:
     latitude: float
     longitude: float
 
-    # Fail test if the coordinates are not valid
+    # Fail fast: raise an error if the coordinates are invalid
     def __post_init__(self) -> None:
-        """Checks that the coordinates are valid"""
+        """Checks that the coordinates are valid."""
         if not -90 <= self.latitude <= 90:
             raise ValueError(
                 f"Invalid latitude for {self.name}: {self.latitude}"
