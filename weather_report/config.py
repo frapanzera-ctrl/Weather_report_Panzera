@@ -22,10 +22,13 @@ ARCHIVE_API_URL = "https://archive-api.open-meteo.com/v1/archive"
 DAILY_VARIABLES = (
     "temperature_2m_max",
     "temperature_2m_min",
+    "temperature_2m_mean",
     "precipitation_sum",
 )
+WEATHER_MODEL = "era5"  # one model only: no artificial jumps in the series
 TIMEZONE = "auto"
 REQUEST_TIMEOUT = 60  # seconds
+REQUEST_PAUSE = 90 # seconds between cities (API rate limit)
 
 # Time period: complete years 
 START_YEAR = 1940
