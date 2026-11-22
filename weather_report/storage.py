@@ -1,17 +1,22 @@
 """Save and load the raw weather data as CSV files (local cache).
 
 Each city is stored in data/raw/ as one CSV file, exactly as received
-from the API. Cleaning and transforming the data are done elsewhere.
+from the API. Missing files are downloaded from open-meteo; Cleaning
+and transforming the data are done elsewhere.
 """
-
+import time 
 from pathlib import Path
 
 import pandas as pd
 
+
+from weather_report.api import fetch_daily_weather
 from weather_report.config import (
-     DAILY_VARIABLES,
-     END_DATE,
+    CITIES,
+    DAILY_VARIABLES,
+    END_DATE,
     RAW_DATA_DIR,
+    REQUEST_PAUSE,
     START_DATE,
 )    
 from weather_report.models import City
@@ -112,3 +117,57 @@ def load_raw(path: Path) -> pd.DataFrame:
     if missing:
         raise StorageError(f"Columns {missing} missing in {path}")
     return df
+
+
+def load_all_cities(
+    cities: tuple[City, ...] = CITIES,
+    start_date: str = START_DATE,
+    end_date: str = END_DATE,
+    pause: float = REQUEST_PAUSE,
+) -> dict[str, pd.DataFrame]:
+    """Load the raw data of several cities, downloading only what is missing.
+
+    For each city the CSV file is read if it already exists (cache);
+    otherwise the data are downloaded from Open-Meteo and saved first.
+    Between two downloads the function waits ``pause`` seconds to
+    respect the API rate limit.
+
+    Parameters
+    ----------
+    cities : tuple of City, optional
+        Cities to load (default: CITIES).
+    start_date : str, optional
+        First day in ISO format "YYYY-MM-DD" (default: START_DATE).
+    end_date : str, optional
+        Last day in ISO format "YYYY-MM-DD" (default: END_DATE).
+    pause : float, optional
+        Seconds to wait between two downloads (default: REQUEST_PAUSE).
+
+    Returns
+    -------
+    dict of str to pandas.DataFrame
+        Raw daily data of each city, keyed by the city slug.
+
+    Raises
+    ------
+    WeatherAPIError
+        If a download fails.
+    StorageError
+        If a saved file cannot be read.
+    """
+    frames = {}
+    downloaded = False
+    for city in cities:
+        path = raw_path(city, start_date, end_date)
+        if path.exists():
+            print(f"{city.name}: loaded from {path.name}")
+        else:
+            if downloaded:
+                time.sleep(pause)  # respect the API rate limit
+            print(f"{city.name}: downloading...")
+            data = fetch_daily_weather(city, start_date, end_date)
+            save_raw(response_to_dataframe(data), path)
+            downloaded = True
+        # Always read from the file: same types for cached and new data
+        frames[city.slug] = load_raw(path)
+    return frames
