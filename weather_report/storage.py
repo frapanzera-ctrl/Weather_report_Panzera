@@ -8,8 +8,16 @@ from pathlib import Path
 
 import pandas as pd
 
-from weather_report.config import END_DATE, RAW_DATA_DIR, START_DATE
+from weather_report.config import (
+     DAILY_VARIABLES,
+     END_DATE,
+    RAW_DATA_DIR,
+    START_DATE,
+)    
 from weather_report.models import City
+
+class StorageError(Exception):
+    """Raised when a raw data file cannot be read."""
 
 
 def response_to_dataframe(data: dict) -> pd.DataFrame:
@@ -55,3 +63,52 @@ def raw_path(
         For example data/raw/milan_1940-01-01_2025-12-31.csv
     """
     return RAW_DATA_DIR / f"{city.slug}_{start_date}_{end_date}.csv"
+
+
+def save_raw(df: pd.DataFrame, path: Path) -> None:
+    """Save raw daily data as a CSV file.
+
+    The destination folder is created if it does not exist yet.
+
+    Parameters
+    ----------
+    df : pandas.DataFrame
+        Raw daily data, as returned by ``response_to_dataframe``.
+    path : pathlib.Path
+        Destination file, usually given by ``raw_path``.
+    """
+    path.parent.mkdir(parents=True, exist_ok=True)
+    df.to_csv(path, index=False)
+
+
+def load_raw(path: Path) -> pd.DataFrame:
+    """Load a raw CSV file saved by ``save_raw``.
+
+    Parameters
+    ----------
+    path : pathlib.Path
+        File to read, usually given by ``raw_path``.
+
+    Returns
+    -------
+    pandas.DataFrame
+        The raw daily data, with the same columns as the API response.
+
+    Raises
+    ------
+    StorageError
+        If the file does not exist, is empty or misses expected columns.
+    """
+    try:
+        df = pd.read_csv(path)
+    except FileNotFoundError as error:
+        raise StorageError(f"Raw data file not found: {path}") from error
+    except pd.errors.EmptyDataError as error:
+        raise StorageError(f"Raw data file is empty: {path}") from error
+
+    # The file must contain the date column and every daily variable
+    expected = ("time", *DAILY_VARIABLES)
+    missing = [col for col in expected if col not in df.columns]
+    if missing:
+        raise StorageError(f"Columns {missing} missing in {path}")
+    return df
