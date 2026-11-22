@@ -28,7 +28,7 @@ DAILY_VARIABLES = (
 WEATHER_MODEL = "era5"  # one model only: no artificial jumps in the series
 TIMEZONE = "auto"
 REQUEST_TIMEOUT = 60  # seconds
-REQUEST_PAUSE = 90 # seconds between cities (API rate limit)
+REQUEST_PAUSE = 90  # seconds between cities (API rate limit)
 
 # Time period: complete years 
 START_YEAR = 1940

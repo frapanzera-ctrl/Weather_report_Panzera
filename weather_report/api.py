@@ -1,8 +1,9 @@
-"""Download the daily weather data from the Open-meteo hystorical weather API.
+"""Download the daily weather data from the Open-meteo historical weather API.
 
 This module only talks to the API: it builds the request, sends it and
 checks the answer. Saving and cleaning the data is done somewhere else.
 """
+
 import requests
 
 from weather_report.config import (
@@ -16,8 +17,10 @@ from weather_report.config import (
 )
 from weather_report.models import City
 
+
 class WeatherAPIError(Exception):
     """Raised when weather data cannot be downloaded from Open-meteo."""
+
 
 def build_params(
     city: City,
