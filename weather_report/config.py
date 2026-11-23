@@ -47,3 +47,16 @@ CITIES = (
     City("London", 51.50853, -0.12574),
     City("Madrid", 40.4165, -3.70256),
 )
+
+
+# Aggregation rule of each daily variable: states (temperatures) are
+# averaged, accumulated quantities (precipitation) are summed
+AGGREGATIONS = {
+    "temperature_2m_max": "mean",
+    "temperature_2m_min": "mean",
+    "temperature_2m_mean": "mean",
+    "precipitation_sum": "sum",
+}
+
+# Minimum share of valid days for a monthly or yearly value
+MIN_VALID_FRACTION = 0.9
