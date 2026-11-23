@@ -7,6 +7,9 @@ monthly and yearly values. It does not compute statistics or draw plots.
 
 import pandas as pd
 
+from weather_report.config import CITIES
+from weather_report.models import City
+
 
 def clean_city(df: pd.DataFrame) -> pd.DataFrame:
     """Turn the raw daily data of one city into a clean time series.
@@ -36,3 +39,39 @@ def clean_city(df: pd.DataFrame) -> pd.DataFrame:
 
     # One row per day: missing days become rows of NaN
     return cleaned.asfreq("D")
+
+def combine_cities(
+    frames: dict[str, pd.DataFrame],
+    cities: tuple[City, ...] = CITIES,
+) -> pd.DataFrame:
+    """Clean the data of several cities and join them in one long table.
+
+    Each raw table is cleaned with ``clean_city`` and the tables are
+    stacked one under the other. A "city" column with the city name
+    tells which city each row belongs to (long format).
+
+    Parameters
+    ----------
+    frames : dict of str to pandas.DataFrame
+        Raw daily data keyed by city slug, as returned by
+        ``load_all_cities``.
+    cities : tuple of City, optional
+        Cities used to turn slugs into names (default: CITIES).
+
+    Returns
+    -------
+    pandas.DataFrame
+        Daily data of all cities indexed by date, with a "city" column
+        and one column for each daily variable.
+    """
+    # From slug to readable name, e.g. "milan" -> "Milan"
+    names = {city.slug: city.name for city in cities}
+
+    # Clean every city, keyed by its name
+    cleaned = {names[slug]: clean_city(df) for slug, df in frames.items()}
+
+    # Stack the tables: the keys become the "city" level of the index
+    combined = pd.concat(cleaned, names=["city", "time"])
+
+    # Move "city" from the index to a column: only dates stay as index
+    return combined.reset_index(level="city")
