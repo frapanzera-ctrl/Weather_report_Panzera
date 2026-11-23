@@ -124,3 +124,38 @@ def to_monthly(daily: pd.DataFrame) -> pd.DataFrame:
 def to_annual(daily: pd.DataFrame) -> pd.DataFrame:
     """Return yearly values of each city (see ``_aggregate``)."""
     return _aggregate(daily, "YS")
+
+
+def monthly_pivot(
+    monthly: pd.DataFrame,
+    city: str,
+    variable: str = "temperature_2m_mean",
+) -> pd.DataFrame:
+    """Reshape the monthly data of one city into a year x month table.
+
+    Parameters
+    ----------
+    monthly : pandas.DataFrame
+        Monthly data of all cities, as returned by ``to_monthly``.
+    city : str
+        Name of the city, e.g. "Milan".
+    variable : str, optional
+        Column to put in the table (default: "temperature_2m_mean").
+
+    Returns
+    -------
+    pandas.DataFrame
+        One row per year and one column per month (1 to 12).
+
+    Raises
+    ------
+    ValueError
+        If there are no data for the given city.
+    """
+    data = monthly[monthly["city"] == city]
+    if data.empty:
+        raise ValueError(f"No monthly data for city {city!r}")
+
+    # Year and month from the dates, then one row per year
+    data = data.assign(year=data.index.year, month=data.index.month)
+    return data.pivot(index="year", columns="month", values=variable)
