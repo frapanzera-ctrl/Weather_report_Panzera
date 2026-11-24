@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 from matplotlib.figure import Figure
 
-from weather_report.config import END_YEAR, START_YEAR
+from weather_report.config import END_YEAR, HOT_DAY_THRESHOLD, START_YEAR
 
 # One fixed color per city, the same in every plot
 CITY_COLORS = {
@@ -68,4 +68,27 @@ def plot_trends(trends: pd.DataFrame) -> Figure:
     ax.bar_label(bars, fmt="%.2f", padding=3)  # value at the end of each bar
     ax.set_xlabel("Trend (°C per decade)")
     ax.set_title(f"Temperature trend {START_YEAR}-{END_YEAR}")
+    return fig
+
+def plot_hot_days(hot: pd.DataFrame) -> Figure:
+    """Line plot of the number of hot days per year in every city.
+
+    Parameters
+    ----------
+    hot : pandas.DataFrame
+        Output of ``hot_days_per_year``.
+
+    Returns
+    -------
+    matplotlib.figure.Figure
+    """
+    fig, ax = plt.subplots(figsize=(10, 5))
+    for city, color in CITY_COLORS.items():
+        ax.plot(hot.index, hot[city], color=color, label=city)
+
+    title = f"Hot days per year (maximum ≥ {HOT_DAY_THRESHOLD:g} °C)"
+    ax.set_xlabel("Year")
+    ax.set_ylabel("Days")
+    ax.set_title(title)
+    ax.legend()
     return fig
