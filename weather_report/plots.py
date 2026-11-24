@@ -9,6 +9,8 @@ import matplotlib.pyplot as plt
 import pandas as pd
 from matplotlib.figure import Figure
 
+from weather_report.config import END_YEAR, START_YEAR
+
 # One fixed color per city, the same in every plot
 CITY_COLORS = {
     "Milan": "#2a78d6",
@@ -42,4 +44,28 @@ def plot_anomalies(anomalies: pd.DataFrame) -> Figure:
     ax.set_ylabel("Anomaly (°C)")
     ax.set_title("Yearly temperature anomaly compared with 1961-1990")
     ax.legend()
+    return fig
+
+def plot_trends(trends: pd.DataFrame) -> Figure:
+    """Horizontal bar chart of the temperature trend of every city.
+
+    Parameters
+    ----------
+    trends : pandas.DataFrame
+        Output of ``trend_table``.
+
+    Returns
+    -------
+    matplotlib.figure.Figure
+    """
+    # Ascending order: barh draws the first bar at the bottom,
+    # so the fastest-warming city ends up at the top
+    data = trends.sort_values("slope_per_decade")
+    colors = [CITY_COLORS[city] for city in data.index]
+
+    fig, ax = plt.subplots(figsize=(7, 4))
+    bars = ax.barh(data.index, data["slope_per_decade"], color=colors)
+    ax.bar_label(bars, fmt="%.2f", padding=3)  # value at the end of each bar
+    ax.set_xlabel("Trend (°C per decade)")
+    ax.set_title(f"Temperature trend {START_YEAR}-{END_YEAR}")
     return fig
