@@ -15,6 +15,7 @@ from weather_report.config import (
     CITIES,
     DAILY_VARIABLES,
     END_DATE,
+    PROCESSED_DATA_DIR,
     RAW_DATA_DIR,
     REQUEST_PAUSE,
     START_DATE,
@@ -171,3 +172,26 @@ def load_all_cities(
         # Always read from the file: same types for cached and new data
         frames[city.slug] = load_raw(path)
     return frames
+
+
+def save_processed(df: pd.DataFrame, name: str) -> Path:
+    """Save a processed table as a CSV file in data/processed/.
+
+    The index (the dates) is saved too, as the first column.
+
+    Parameters
+    ----------
+    df : pandas.DataFrame
+        Table to save, e.g. the output of ``to_monthly``.
+    name : str
+        File name without extension, e.g. "monthly".
+
+    Returns
+    -------
+    pathlib.Path
+        Path of the saved file.
+    """
+    path = PROCESSED_DATA_DIR / f"{name}.csv"
+    path.parent.mkdir(parents=True, exist_ok=True)
+    df.to_csv(path)
+    return path
