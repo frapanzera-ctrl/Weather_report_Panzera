@@ -8,12 +8,14 @@ import time
 from pathlib import Path
 
 import pandas as pd
+from matplotlib.figure import Figure
 
 
 from weather_report.api import fetch_daily_weather
 from weather_report.config import (
     CITIES,
     END_DATE,
+    FIGURES_DIR,
     PROCESSED_DATA_DIR,
     RAW_DATA_DIR,
     REQUEST_PAUSE,
@@ -190,3 +192,22 @@ def save_processed(df: pd.DataFrame, name: str) -> Path:
     df.to_csv(path)
     return path
 
+def save_figure(fig: Figure, name: str) -> Path:
+    """Save a figure as a PNG file in outputs/figures/.
+
+    Parameters
+    ----------
+    fig : matplotlib.figure.Figure
+        Figure to save, e.g. the output of ``plot_anomalies``.
+    name : str
+        File name without extension, e.g. "anomalies".
+
+    Returns
+    -------
+    pathlib.Path
+        Path of the saved file.
+    """
+    path = FIGURES_DIR / f"{name}.png"
+    path.parent.mkdir(parents=True, exist_ok=True)
+    fig.savefig(path, dpi=150, bbox_inches="tight")
+    return path
