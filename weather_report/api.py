@@ -84,31 +84,21 @@ def fetch_daily_weather(
     """
     params = build_params(city, start_date, end_date)
 
-    # 1. Send the request: network problems and timeouts end up here
+    
+    # 1. Send the request: network problems, timeouts and HTTP errors
+    #    (4xx, 5xx) all end up in the except block
     try:
         response = requests.get(
             ARCHIVE_API_URL, params=params, timeout=REQUEST_TIMEOUT
         )
+        response.raise_for_status()
     except requests.exceptions.RequestException as error:
         raise WeatherAPIError(
-            f"Could not reach Open-Meteo for {city.name}: {error}"
+            f"Could not download data for {city.name}: {error}"
         ) from error
+    
 
-    # 2. Check the status code: Open-Meteo explains errors in "reason"
-    if response.status_code != 200:
-        try:
-            reason = response.json().get("reason", response.text)
-        except requests.exceptions.JSONDecodeError:
-            reason = response.text
-        message = (
-            f"Open-Meteo error {response.status_code} "
-            f"for {city.name}: {reason}"
-        )
-        if response.status_code == 429:
-            message += " (rate limit reached: wait and try again later)"
-        raise WeatherAPIError(message)
-
-    # 3. Check the content: the answer must contain the "daily" block
+    # 2. Check the content: the answer must contain the "daily" block
     try:
         data = response.json()
     except requests.exceptions.JSONDecodeError as error:
