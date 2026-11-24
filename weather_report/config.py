@@ -40,6 +40,8 @@ END_DATE = f"{END_YEAR}-12-31"
 REFERENCE_PERIOD = (1961, 1990)
 # Recent period compared with the reference period
 RECENT_PERIOD = (1996, 2025)
+# A "hot day" has a maximum temperature of at least this value (°C)
+HOT_DAY_THRESHOLD = 30.0
 
 # Cities: coordinates from the Open-Meteo Geocoding API
 CITIES = (

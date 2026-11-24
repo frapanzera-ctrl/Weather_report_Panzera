@@ -7,8 +7,11 @@ new table or a small dictionary of numbers. It does not draw plots.
 import pandas as pd
 from scipy import stats
 
-from weather_report.config import RECENT_PERIOD, REFERENCE_PERIOD
-
+from weather_report.config import (
+    HOT_DAY_THRESHOLD,
+    RECENT_PERIOD,
+    REFERENCE_PERIOD,
+)
 
 def city_summary(
     daily: pd.DataFrame,
@@ -181,3 +184,30 @@ def compare_periods(
         "t_statistic": round(float(t_statistic), 2),
         "p_value": float(p_value),
     }
+
+def hot_days_per_year(
+    daily: pd.DataFrame,
+    threshold: float = HOT_DAY_THRESHOLD,
+) -> pd.DataFrame:
+    """Count the days of each year with a maximum temperature above a threshold.
+
+    Parameters
+    ----------
+    daily : pandas.DataFrame
+        Daily data of all cities, as returned by ``combine_cities``.
+    threshold : float, optional
+        Minimum daily maximum temperature in °C
+        (default: HOT_DAY_THRESHOLD).
+
+    Returns
+    -------
+    pandas.DataFrame
+        One row per year and one column per city.
+    """
+    # True for every hot day: summing booleans counts them
+    hot = daily["temperature_2m_max"] >= threshold
+    year = daily.index.year.rename("year")
+    counts = hot.groupby([daily["city"], year]).sum()
+
+    # Cities from the rows to the columns (wide format)
+    return counts.unstack(level="city")
