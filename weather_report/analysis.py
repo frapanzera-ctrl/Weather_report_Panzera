@@ -7,7 +7,7 @@ new table or a small dictionary of numbers. It does not draw plots.
 import pandas as pd
 from scipy import stats
 
-from weather_report.config import REFERENCE_PERIOD
+from weather_report.config import RECENT_PERIOD, REFERENCE_PERIOD
 
 
 def city_summary(
@@ -130,3 +130,54 @@ def trend_table(
     rows = [linear_trend(annual, city, variable)
             for city in annual["city"].unique()]
     return pd.DataFrame(rows).set_index("city")
+
+def compare_periods(
+    annual: pd.DataFrame,
+    city: str,
+    variable: str = "temperature_2m_mean",
+    early: tuple[int, int] = REFERENCE_PERIOD,
+    late: tuple[int, int] = RECENT_PERIOD,
+) -> dict:
+    """Compare the mean of two periods of one city with Welch's t-test.
+
+    The null hypothesis is that the two periods have the same mean.
+    Welch's version does not assume equal variances.
+
+    Parameters
+    ----------
+    annual : pandas.DataFrame
+        Yearly data of all cities, as returned by ``to_annual``.
+    city : str
+        Name of the city, e.g. "Milan".
+    variable : str, optional
+        Column to use (default: "temperature_2m_mean").
+    early : tuple of int, optional
+        First and last year of the first period
+        (default: REFERENCE_PERIOD).
+    late : tuple of int, optional
+        First and last year of the second period
+        (default: RECENT_PERIOD).
+
+    Returns
+    -------
+    dict
+        Keys "city", "early_mean", "late_mean", "difference",
+        "t_statistic" and "p_value".
+    """
+    data = annual[annual["city"] == city]
+    years = data.index.year
+
+    # Yearly values of the two periods (boolean masks)
+    first = data.loc[(years >= early[0]) & (years <= early[1]), variable]
+    second = data.loc[(years >= late[0]) & (years <= late[1]), variable]
+
+    t_statistic, p_value = stats.ttest_ind(second, first, equal_var=False)
+
+    return {
+        "city": city,
+        "early_mean": round(float(first.mean()), 2),
+        "late_mean": round(float(second.mean()), 2),
+        "difference": round(float(second.mean() - first.mean()), 2),
+        "t_statistic": round(float(t_statistic), 2),
+        "p_value": float(p_value),
+    }

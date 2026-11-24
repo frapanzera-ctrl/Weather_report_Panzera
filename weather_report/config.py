@@ -38,6 +38,8 @@ END_DATE = f"{END_YEAR}-12-31"
 
 # Reference period for anomalies (climate normal)
 REFERENCE_PERIOD = (1961, 1990)
+# Recent period compared with the reference period
+RECENT_PERIOD = (1996, 2025)
 
 # Cities: coordinates from the Open-Meteo Geocoding API
 CITIES = (
