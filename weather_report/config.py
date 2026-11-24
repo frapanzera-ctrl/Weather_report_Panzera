@@ -57,6 +57,3 @@ AGGREGATIONS = {
     "temperature_2m_mean": "mean",
     "precipitation_sum": "sum",
 }
-
-# Minimum share of valid days for a monthly or yearly value
-MIN_VALID_FRACTION = 0.9

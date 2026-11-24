@@ -7,7 +7,7 @@ monthly and yearly values. It does not compute statistics or draw plots.
 
 import pandas as pd
 
-from weather_report.config import AGGREGATIONS, CITIES, MIN_VALID_FRACTION
+from weather_report.config import AGGREGATIONS, CITIES
 from weather_report.storage import load_all_cities, save_processed
 from weather_report.models import City
 
@@ -77,16 +77,11 @@ def combine_cities(
     # Move "city" from the index to a column: only dates stay as index
     return combined.reset_index(level="city")
 
-def _aggregate(
-    daily: pd.DataFrame,
-    freq: str,
-    min_fraction: float = MIN_VALID_FRACTION,
-) -> pd.DataFrame:
+def _aggregate(daily: pd.DataFrame, freq: str) -> pd.DataFrame:
     """Aggregate the daily data of each city over periods of time.
 
     Temperatures are averaged and precipitation is summed, following
-    AGGREGATIONS. A value becomes NaN if less than ``min_fraction`` of
-    the days in its period have data.
+    AGGREGATIONS.
 
     Parameters
     ----------
@@ -95,9 +90,6 @@ def _aggregate(
     freq : str
         pandas frequency of the periods, e.g. "MS" (months) or "YS"
         (years).
-    min_fraction : float, optional
-        Minimum share of valid days, between 0 and 1
-        (default: MIN_VALID_FRACTION).
 
     Returns
     -------
@@ -107,14 +99,7 @@ def _aggregate(
     """
     # Group by city and by period at the same time
     grouped = daily.groupby(["city", pd.Grouper(level="time", freq=freq)])
-    values = grouped.agg(AGGREGATIONS)
-
-    # Share of days with data: valid days / days in the period
-    fraction = grouped.count().div(grouped.size(), axis=0)
-
-    # Hide the values of incomplete periods
-    values = values.where(fraction >= min_fraction)
-    return values.reset_index(level="city")
+    return grouped.agg(AGGREGATIONS).reset_index(level="city")
 
 
 def to_monthly(daily: pd.DataFrame) -> pd.DataFrame:
