@@ -68,14 +68,14 @@ def combine_cities(
     # From slug to readable name, e.g. "milan" -> "Milan"
     names = {city.slug: city.name for city in cities}
 
-    # Clean every city, keyed by its name
-    cleaned = {names[slug]: clean_city(df) for slug, df in frames.items()}
+    # Clean every city and add a column with its name
+    cleaned = [
+        clean_city(df).assign(city=names[slug])
+        for slug, df in frames.items()
+    ]
 
-    # Stack the tables: the keys become the "city" level of the index
-    combined = pd.concat(cleaned, names=["city", "time"])
-
-    # Move "city" from the index to a column: only dates stay as index
-    return combined.reset_index(level="city")
+    # Stack the tables one under the other: dates stay as index
+    return pd.concat(cleaned)
 
 def _aggregate(daily: pd.DataFrame, freq: str) -> pd.DataFrame:
     """Aggregate the daily data of each city over periods of time.
