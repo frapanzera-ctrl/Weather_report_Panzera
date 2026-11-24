@@ -13,7 +13,6 @@ import pandas as pd
 from weather_report.api import fetch_daily_weather
 from weather_report.config import (
     CITIES,
-    DAILY_VARIABLES,
     END_DATE,
     PROCESSED_DATA_DIR,
     RAW_DATA_DIR,
@@ -103,7 +102,7 @@ def load_raw(path: Path) -> pd.DataFrame:
     Raises
     ------
     StorageError
-        If the file does not exist, is empty or misses expected columns.
+        If the file does not exist or is empty
     """
     try:
         df = pd.read_csv(path)
@@ -112,11 +111,6 @@ def load_raw(path: Path) -> pd.DataFrame:
     except pd.errors.EmptyDataError as error:
         raise StorageError(f"Raw data file is empty: {path}") from error
 
-    # The file must contain the date column and every daily variable
-    expected = ("time", *DAILY_VARIABLES)
-    missing = [col for col in expected if col not in df.columns]
-    if missing:
-        raise StorageError(f"Columns {missing} missing in {path}")
     return df
 
 
@@ -195,3 +189,4 @@ def save_processed(df: pd.DataFrame, name: str) -> Path:
     path.parent.mkdir(parents=True, exist_ok=True)
     df.to_csv(path)
     return path
+

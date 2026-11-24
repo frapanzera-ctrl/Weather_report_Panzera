@@ -16,9 +16,8 @@ def clean_city(df: pd.DataFrame) -> pd.DataFrame:
     """Turn the raw daily data of one city into a clean time series.
 
     The "time" column is converted to dates and used as the index.
-    Rows are sorted by date, duplicated dates are dropped (the first
-    one is kept) and missing days are added as rows of NaN, so that
-    there is exactly one row per day.
+    Rows are sorted by date and missing days are added as rows of NaN,
+    so that there is exactly one row per day.
 
     Parameters
     ----------
@@ -35,11 +34,10 @@ def clean_city(df: pd.DataFrame) -> pd.DataFrame:
     cleaned = df.assign(time=pd.to_datetime(df["time"], format="%Y-%m-%d"))
     cleaned = cleaned.set_index("time").sort_index()
 
-    # Drop repeated dates, keeping the first occurrence
-    cleaned = cleaned[~cleaned.index.duplicated(keep="first")]
 
     # One row per day: missing days become rows of NaN
     return cleaned.asfreq("D")
+
 
 def combine_cities(
     frames: dict[str, pd.DataFrame],
