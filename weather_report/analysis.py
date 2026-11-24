@@ -68,3 +68,65 @@ def annual_anomalies(
     normals = annual[in_period].groupby("city")[variable].mean()
     anomaly = annual[variable] - annual["city"].map(normals)
     return annual.assign(anomaly=anomaly.round(2))[["city", "anomaly"]]
+
+def linear_trend(
+    annual: pd.DataFrame,
+    city: str,
+    variable: str = "temperature_2m_mean",
+) -> dict:
+    """Fit a straight line to the yearly values of one city.
+
+    The slope is given per decade. The p-value tests the null
+    hypothesis that there is no trend (slope equal to zero).
+
+    Parameters
+    ----------
+    annual : pandas.DataFrame
+        Yearly data of all cities, as returned by ``to_annual``.
+    city : str
+        Name of the city, e.g. "Milan".
+    variable : str, optional
+        Column to use (default: "temperature_2m_mean").
+
+    Returns
+    -------
+    dict
+        Keys "city", "slope_per_decade", "r_squared" and "p_value".
+    """
+    data = annual[annual["city"] == city]
+
+    # Years on x, values on y, as numpy arrays
+    years = data.index.year.to_numpy()
+    values = data[variable].to_numpy()
+    result = stats.linregress(years, values)
+
+    return {
+        "city": city,
+        "slope_per_decade": round(float(result.slope) * 10, 3),
+        "r_squared": round(float(result.rvalue) ** 2, 3),
+        "p_value": float(result.pvalue),
+    }
+
+
+def trend_table(
+    annual: pd.DataFrame,
+    variable: str = "temperature_2m_mean",
+) -> pd.DataFrame:
+    """Linear trend of every city in one table (see ``linear_trend``).
+
+    Parameters
+    ----------
+    annual : pandas.DataFrame
+        Yearly data of all cities, as returned by ``to_annual``.
+    variable : str, optional
+        Column to use (default: "temperature_2m_mean").
+
+    Returns
+    -------
+    pandas.DataFrame
+        One row per city, columns "slope_per_decade", "r_squared"
+        and "p_value".
+    """
+    rows = [linear_trend(annual, city, variable)
+            for city in annual["city"].unique()]
+    return pd.DataFrame(rows).set_index("city")
