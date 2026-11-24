@@ -8,9 +8,11 @@ does not save files (see storage.save_figure).
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+import seaborn as sns
 from matplotlib.figure import Figure
 
 from weather_report.config import END_YEAR, HOT_DAY_THRESHOLD, START_YEAR
+from weather_report.processing import monthly_pivot
 
 # One fixed color per city, the same in every plot
 CITY_COLORS = {
@@ -128,4 +130,34 @@ def plot_warming_stripes(anomalies: pd.DataFrame, city: str) -> Figure:
     )
     ax.set_yticks([])  # the vertical axis has no meaning here
     ax.set_title(f"Warming stripes: {city}")
+    return fig
+
+
+def plot_monthly_heatmap(monthly: pd.DataFrame, city: str) -> Figure:
+    """Heatmap of the monthly mean temperature of one city, year by month.
+
+    Parameters
+    ----------
+    monthly : pandas.DataFrame
+        Output of ``to_monthly``.
+    city : str
+        Name of the city, e.g. "Milan".
+
+    Returns
+    -------
+    matplotlib.figure.Figure
+    """
+    table = monthly_pivot(monthly, city)  # one row per year, one per month
+
+    fig, ax = plt.subplots(figsize=(7, 10))
+    sns.heatmap(
+        table,
+        cmap="Reds",
+        yticklabels=10,  # one label every 10 years
+        cbar_kws={"label": "Mean temperature (°C)"},
+        ax=ax,
+    )
+    ax.set_xlabel("Month")
+    ax.set_ylabel("Year")
+    ax.set_title(f"Monthly mean temperature: {city}")
     return fig
