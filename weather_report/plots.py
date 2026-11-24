@@ -6,6 +6,7 @@ does not save files (see storage.save_figure).
 """
 
 import matplotlib.pyplot as plt
+import numpy as np
 import pandas as pd
 from matplotlib.figure import Figure
 
@@ -91,4 +92,40 @@ def plot_hot_days(hot: pd.DataFrame) -> Figure:
     ax.set_ylabel("Days")
     ax.set_title(title)
     ax.legend()
+    return fig
+
+def plot_warming_stripes(anomalies: pd.DataFrame, city: str) -> Figure:
+    """Warming stripes of one city: one colored stripe per year.
+
+    Blue years are colder and red years warmer than the climate normal.
+
+    Parameters
+    ----------
+    anomalies : pandas.DataFrame
+        Output of ``annual_anomalies``.
+    city : str
+        Name of the city, e.g. "Milan".
+
+    Returns
+    -------
+    matplotlib.figure.Figure
+    """
+    data = anomalies[anomalies["city"] == city]
+    years = data.index.year
+    values = data["anomaly"].to_numpy()
+
+    # Same limit on both sides, so that zero is white
+    limit = np.abs(values).max()
+
+    fig, ax = plt.subplots(figsize=(10, 2))
+    ax.imshow(
+        values[np.newaxis, :],  # 1 row x N years, drawn as an image
+        cmap="RdBu_r",
+        vmin=-limit,
+        vmax=limit,
+        aspect="auto",
+        extent=(years[0], years[-1] + 1, 0, 1),
+    )
+    ax.set_yticks([])  # the vertical axis has no meaning here
+    ax.set_title(f"Warming stripes: {city}")
     return fig
