@@ -8,6 +8,7 @@ monthly and yearly values. It does not compute statistics or draw plots.
 import pandas as pd
 
 from weather_report.config import AGGREGATIONS, CITIES, MIN_VALID_FRACTION
+from weather_report.storage import load_all_cities, save_processed
 from weather_report.models import City
 
 
@@ -159,3 +160,32 @@ def monthly_pivot(
     # Year and month from the dates, then one row per year
     data = data.assign(year=data.index.year, month=data.index.month)
     return data.pivot(index="year", columns="month", values=variable)
+
+def build_tables(save: bool = True) -> dict[str, pd.DataFrame]:
+    """Run the whole processing and return the daily, monthly and yearly tables.
+
+    Raw data are loaded (or downloaded if missing), cleaned, joined and
+    aggregated. If ``save`` is True each table is also written to
+    data/processed/.
+
+    Parameters
+    ----------
+    save : bool, optional
+        Whether to save the tables as CSV files (default: True).
+
+    Returns
+    -------
+    dict of str to pandas.DataFrame
+        The tables keyed by name: "daily", "monthly" and "annual".
+    """
+    daily = combine_cities(load_all_cities())
+    tables = {
+        "daily": daily,
+        "monthly": to_monthly(daily),
+        "annual": to_annual(daily),
+    }
+    if save:
+        for name, table in tables.items():
+            path = save_processed(table, name)
+            print(f"{name}: saved to {path.name}")
+    return tables
