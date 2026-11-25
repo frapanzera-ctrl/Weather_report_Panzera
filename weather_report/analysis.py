@@ -244,3 +244,33 @@ def hot_days_per_year(
 
     # Cities from the rows to the columns (wide format)
     return counts.unstack(level="city")
+
+def hot_days_by_period(
+    hot: pd.DataFrame,
+    early: tuple[int, int] = REFERENCE_PERIOD,
+    late: tuple[int, int] = RECENT_PERIOD,
+) -> pd.DataFrame:
+    """Mean number of hot days per year in two periods, for every city.
+
+    Parameters
+    ----------
+    hot : pandas.DataFrame
+        Output of ``hot_days_per_year``.
+    early : tuple of int, optional
+        First and last year of the first period
+        (default: REFERENCE_PERIOD).
+    late : tuple of int, optional
+        First and last year of the second period
+        (default: RECENT_PERIOD).
+
+    Returns
+    -------
+    pandas.DataFrame
+        One row per city, columns "early_mean" and "late_mean".
+    """
+    # The index holds the years, so .loc can slice by year
+    table = pd.DataFrame({
+        "early_mean": hot.loc[early[0]:early[1]].mean(),
+        "late_mean": hot.loc[late[0]:late[1]].mean(),
+    })
+    return table.round(1)
