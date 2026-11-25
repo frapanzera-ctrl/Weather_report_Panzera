@@ -18,6 +18,7 @@ from weather_report.config import (
     FIGURES_DIR,
     PROCESSED_DATA_DIR,
     RAW_DATA_DIR,
+    TABLES_DIR,
     REQUEST_PAUSE,
     START_DATE,
 )    
@@ -191,6 +192,28 @@ def save_processed(df: pd.DataFrame, name: str) -> Path:
     path.parent.mkdir(parents=True, exist_ok=True)
     df.to_csv(path)
     return path
+
+
+def save_table(df: pd.DataFrame, name: str) -> Path:
+    """Save a results table as a CSV file in outputs/tables/.
+
+    Parameters
+    ----------
+    df : pandas.DataFrame
+        Table to save, e.g. the output of ``trend_table``.
+    name : str
+        File name without extension, e.g. "temperature_trends".
+
+    Returns
+    -------
+    pathlib.Path
+        Path of the saved file.
+    """
+    path = TABLES_DIR / f"{name}.csv"
+    path.parent.mkdir(parents=True, exist_ok=True)
+    df.to_csv(path)
+    return path
+
 
 def save_figure(fig: Figure, name: str) -> Path:
     """Save a figure as a PNG file in outputs/figures/.
