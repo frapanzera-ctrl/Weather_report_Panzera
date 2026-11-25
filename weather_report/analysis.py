@@ -185,6 +185,39 @@ def compare_periods(
         "p_value": float(p_value),
     }
 
+
+def comparison_table(
+    annual: pd.DataFrame,
+    variable: str = "temperature_2m_mean",
+    early: tuple[int, int] = REFERENCE_PERIOD,
+    late: tuple[int, int] = RECENT_PERIOD,
+) -> pd.DataFrame:
+    """Period comparison of every city in one table (see ``compare_periods``).
+
+    Parameters
+    ----------
+    annual : pandas.DataFrame
+        Yearly data of all cities, as returned by ``to_annual``.
+    variable : str, optional
+        Column to use (default: "temperature_2m_mean").
+    early : tuple of int, optional
+        First and last year of the first period
+        (default: REFERENCE_PERIOD).
+    late : tuple of int, optional
+        First and last year of the second period
+        (default: RECENT_PERIOD).
+
+    Returns
+    -------
+    pandas.DataFrame
+        One row per city, columns "early_mean", "late_mean",
+        "difference", "t_statistic" and "p_value".
+    """
+    rows = [compare_periods(annual, city, variable, early, late)
+            for city in annual["city"].unique()]
+    return pd.DataFrame(rows).set_index("city")
+
+
 def hot_days_per_year(
     daily: pd.DataFrame,
     threshold: float = HOT_DAY_THRESHOLD,
