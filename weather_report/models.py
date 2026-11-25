@@ -2,22 +2,12 @@
 
 from dataclasses import dataclass
 
-
+# frozen=True: a City cannot be changed after it is created
 @dataclass(frozen=True)
 class City:
-    """A city for which weather data is downloaded.
-    
-    Attributes
-    ----------
-    name : str
-        Name of the city in english (e.g. "Milan").
-    latitude : float
-        Latitude in decimal degrees, between -90 and 90.
-    longitude : float 
-        Longitude in decimal degrees, between -180 and 180.       
-     """
+    """A city with its name and coordinates in decimal degrees."""
 
-    # TYPE HINT: expected types 
+    # Fields: the dataclass writes __init__, __repr__ and __eq__ from them
     name: str
     latitude: float
     longitude: float
@@ -34,7 +24,7 @@ class City:
                 f"Invalid longitude for {self.name}: {self.longitude}"
             )
         
-    # Will be useful for storage.py for file names    
+    # Read like an attribute (city.slug), used to name the data files    
     @property
     def slug(self) -> str:
         """Return the name in a form usable in file names (e.g. "milan")"""

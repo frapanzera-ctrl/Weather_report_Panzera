@@ -1,13 +1,14 @@
-"""Save and load the raw weather data as CSV files (local cache).
+"""Save and load the project files: raw CSV cache, tables and figures.
 
-Each city is stored in data/raw/ as one CSV file, exactly as received
-from the API. Missing files are downloaded from open-meteo; Cleaning
-and transforming the data are done elsewhere.
+Raw data are downloaded only when their CSV file is missing. Cleaning
+and analysis happen in processing.py and analysis.py.
 """
+
 import time 
 from pathlib import Path
 
 import pandas as pd
+# Figure is only used as a type hint in save_figure
 from matplotlib.figure import Figure
 
 
@@ -25,23 +26,12 @@ from weather_report.config import (
 from weather_report.models import City
 
 class StorageError(Exception):
-    """Raised when a raw data file cannot be read."""
+    """Raised when a raw CSV filecannot be read."""
 
 
 def response_to_dataframe(data: dict) -> pd.DataFrame:
-    """Convert the "daily" block of an API response into a DataFrame.
-
-    Parameters
-    ----------
-    data : dict
-        API response returned by ``fetch_daily_weather``.
-
-    Returns
-    -------
-    pandas.DataFrame
-        One row per day: the "time" column with the dates as text
-        and one column for each daily variable.
-    """
+    """Turn the "daily" block of an API answer into a DataFrame."""
+    # Each key of "daily" (time, temperatures....) becomes a column
     return pd.DataFrame(data["daily"])
 
 
@@ -50,63 +40,24 @@ def raw_path(
     start_date: str = START_DATE,
     end_date: str = END_DATE,
 ) -> Path:
-    """Return the path of the raw CSV file for a city and a period.
+    """Return the path of the raw CSV file of a city for a period.
 
-    The period is part of the file name, so files of different
-    requests never get mixed up (e.g. a short test and the full
-    download).
-
-    Parameters
-    ----------
-    city : City
-        The city the data refers to.
-    start_date : str, optional
-        First day in ISO format "YYYY-MM-DD" (default: START_DATE).
-    end_date : str, optional
-        Last day in ISO format "YYYY-MM-DD" (default: END_DATE).
-
-    Returns
-    -------
-    pathlib.Path
-        For example data/raw/milan_1940-01-01_2025-12-31.csv
+    The period is in the file name, so different downloads never mix.
     """
+    # e.g. data/raw/milan_1940-01-01_2025-12-31.csv
     return RAW_DATA_DIR / f"{city.slug}_{start_date}_{end_date}.csv"
 
 
 def save_raw(df: pd.DataFrame, path: Path) -> None:
-    """Save raw daily data as a CSV file.
-
-    The destination folder is created if it does not exist yet.
-
-    Parameters
-    ----------
-    df : pandas.DataFrame
-        Raw daily data, as returned by ``response_to_dataframe``.
-    path : pathlib.Path
-        Destination file, usually given by ``raw_path``.
-    """
+    """Save raw daily data as a CSV file, creating the folder if needed."""
     path.parent.mkdir(parents=True, exist_ok=True)
+    # index=False: the row numbers 0, 1, 2... are not saved
     df.to_csv(path, index=False)
 
 
 def load_raw(path: Path) -> pd.DataFrame:
-    """Load a raw CSV file saved by ``save_raw``.
-
-    Parameters
-    ----------
-    path : pathlib.Path
-        File to read, usually given by ``raw_path``.
-
-    Returns
-    -------
-    pandas.DataFrame
-        The raw daily data, with the same columns as the API response.
-
-    Raises
-    ------
-    StorageError
-        If the file does not exist or is empty
-    """
+    """Read a raw CSV file; raise StorageError if it is missing or empty."""
+    # Turn the 2 pandas errors into one project error
     try:
         df = pd.read_csv(path)
     except FileNotFoundError as error:
@@ -123,39 +74,15 @@ def load_all_cities(
     end_date: str = END_DATE,
     pause: float = REQUEST_PAUSE,
 ) -> dict[str, pd.DataFrame]:
-    """Load the raw data of several cities, downloading only what is missing.
+    """Load the raw data of every city, downloading only the missing files.
 
-    For each city the CSV file is read if it already exists (cache);
-    otherwise the data are downloaded from Open-Meteo and saved first.
-    Between two downloads the function waits ``pause`` seconds to
-    respect the API rate limit.
-
-    Parameters
-    ----------
-    cities : tuple of City, optional
-        Cities to load (default: CITIES).
-    start_date : str, optional
-        First day in ISO format "YYYY-MM-DD" (default: START_DATE).
-    end_date : str, optional
-        Last day in ISO format "YYYY-MM-DD" (default: END_DATE).
-    pause : float, optional
-        Seconds to wait between two downloads (default: REQUEST_PAUSE).
-
-    Returns
-    -------
-    dict of str to pandas.DataFrame
-        Raw daily data of each city, keyed by the city slug.
-
-    Raises
-    ------
-    WeatherAPIError
-        If a download fails.
-    StorageError
-        If a saved file cannot be read.
+    Returns a dict {slug: DataFrame}. Waits ``pause`` seconds between two
+    downloads to respect the API rate limit.
     """
     frames = {}
     downloaded = False
     for city in cities:
+        # Cache: read the file if it exists, otherwise download it
         path = raw_path(city, start_date, end_date)
         if path.exists():
             print(f"{city.name}: loaded from {path.name}")
@@ -172,65 +99,27 @@ def load_all_cities(
 
 
 def save_processed(df: pd.DataFrame, name: str) -> Path:
-    """Save a processed table as a CSV file in data/processed/.
-
-    The index (the dates) is saved too, as the first column.
-
-    Parameters
-    ----------
-    df : pandas.DataFrame
-        Table to save, e.g. the output of ``to_monthly``.
-    name : str
-        File name without extension, e.g. "monthly".
-
-    Returns
-    -------
-    pathlib.Path
-        Path of the saved file.
-    """
+    """Save a processed table in data/processed/ and return its path."""
     path = PROCESSED_DATA_DIR / f"{name}.csv"
     path.parent.mkdir(parents=True, exist_ok=True)
+    # The index (the dates) is saved as first column
     df.to_csv(path)
     return path
 
 
 def save_table(df: pd.DataFrame, name: str) -> Path:
-    """Save a results table as a CSV file in outputs/tables/.
-
-    Parameters
-    ----------
-    df : pandas.DataFrame
-        Table to save, e.g. the output of ``trend_table``.
-    name : str
-        File name without extension, e.g. "temperature_trends".
-
-    Returns
-    -------
-    pathlib.Path
-        Path of the saved file.
-    """
+    """Save a results table in outputs/tables/ and return its path."""
     path = TABLES_DIR / f"{name}.csv"
     path.parent.mkdir(parents=True, exist_ok=True)
+    # The index (city or years) is saved as firts column
     df.to_csv(path)
     return path
 
 
 def save_figure(fig: Figure, name: str) -> Path:
-    """Save a figure as a PNG file in outputs/figures/.
-
-    Parameters
-    ----------
-    fig : matplotlib.figure.Figure
-        Figure to save, e.g. the output of ``plot_anomalies``.
-    name : str
-        File name without extension, e.g. "anomalies".
-
-    Returns
-    -------
-    pathlib.Path
-        Path of the saved file.
-    """
+    """Save a figure as PNG in outputs/figures/ and return its path."""
     path = FIGURES_DIR / f"{name}.png"
     path.parent.mkdir(parents=True, exist_ok=True)
+    # dpi=150: sharp image; bbox_inches="tight": no extra white margins
     fig.savefig(path, dpi=150, bbox_inches="tight")
     return path

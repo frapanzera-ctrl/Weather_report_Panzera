@@ -1,7 +1,6 @@
-"""Project-wide settings for the Weather Report project.
+"""Project-wide settings: folder paths, API parameters, period and cities.
 
-All constants are defined here, so each value lives in one place:
-folder paths, Open-Meteo API settings, time period and cities.
+Every constant lives here, so each value is changed in one place only.
 """
 
 from pathlib import Path
@@ -26,11 +25,11 @@ DAILY_VARIABLES = (
     "precipitation_sum",
 )
 WEATHER_MODEL = "era5"  # one model only: no artificial jumps in the series
-TIMEZONE = "auto"
+TIMEZONE = "auto"  # days follow the local time for each city
 REQUEST_TIMEOUT = 60  # seconds
 REQUEST_PAUSE = 90  # seconds between cities (API rate limit)
 
-# Time period: complete years 
+# Time period: complete years and ISO dates
 START_YEAR = 1940
 END_YEAR = 2025
 START_DATE = f"{START_YEAR}-01-01"

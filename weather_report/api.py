@@ -1,7 +1,7 @@
-"""Download the daily weather data from the Open-meteo historical weather API.
+"""Download daily weather data from the Open-Meteo Historical Weather API.
 
-This module only talks to the API: it builds the request, sends it and
-checks the answer. Saving and cleaning the data is done somewhere else.
+This module only talks to the API. Saving and cleaning the data happen
+in storage.py and processing.py.
 """
 
 import requests
@@ -19,7 +19,7 @@ from weather_report.models import City
 
 
 class WeatherAPIError(Exception):
-    """Raised when weather data cannot be downloaded from Open-meteo."""
+     """Raised when the data of a city cannot be downloaded."""
 
 
 def build_params(
@@ -27,22 +27,8 @@ def build_params(
     start_date: str = START_DATE,
     end_date: str = END_DATE,
 ) -> dict:
-    """Build the query parameters of the API request for one city.
-
-    Parameters
-    ----------
-    city : City
-        The city to download data for.
-    start_date : str, optional
-        First day in ISO format "YYYY-MM-DD" (default: START_DATE).
-    end_date : str, optional
-        Last day in ISO format "YYYY-MM-DD" (default: END_DATE).
-
-    Returns
-    -------
-    dict
-        Query parameters for the Open-Meteo archive endpoint.
-    """
+    """Build the query parameters of the request for one city."""
+    # Variables are sent as one comma-separated string
     return {
         "latitude": city.latitude,
         "longitude": city.longitude,
@@ -59,34 +45,16 @@ def fetch_daily_weather(
     start_date: str = START_DATE,
     end_date: str = END_DATE,
 ) -> dict:
-    """Download daily weather data for one city.
+    """Download the daily data of one city and return the JSON as a dict.
 
-    Parameters
-    ----------
-    city : City
-        The city to download data for.
-    start_date : str, optional
-        First day in ISO format "YYYY-MM-DD" (default: START_DATE).
-    end_date : str, optional
-        Last day in ISO format "YYYY-MM-DD" (default: END_DATE).
-
-    Returns
-    -------
-    dict
-        The JSON response as a dictionary. Its "daily" key holds the
-        list of dates and one list of values for each variable.
-
-    Raises
-    ------
-    WeatherAPIError
-        If the API cannot be reached, returns an error or sends a
-        response without daily data.
+    Raises WeatherAPIError if the request fails or the answer has no
+    "daily" block.
     """
     params = build_params(city, start_date, end_date)
 
     
     # 1. Send the request: network problems, timeouts and HTTP errors
-    #    (4xx, 5xx) all end up in the except block
+    #    (4xx, 5xx) all become a WeatherAPIError
     try:
         response = requests.get(
             ARCHIVE_API_URL, params=params, timeout=REQUEST_TIMEOUT
@@ -98,7 +66,7 @@ def fetch_daily_weather(
         ) from error
     
 
-    # 2. Check the content: the answer must contain the "daily" block
+    # 2. Read the JSON and check that the "daily" block is there
     try:
         data = response.json()
     except requests.exceptions.JSONDecodeError as error:

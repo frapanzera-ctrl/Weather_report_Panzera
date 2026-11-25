@@ -1,8 +1,7 @@
 """Draw the results of the analysis with matplotlib and seaborn.
 
-Every function receives a table built by processing.py or analysis.py
-and returns a matplotlib Figure. It does not compute statistics and
-does not save files (see storage.save_figure).
+Every function takes a table from processing.py or analysis.py and
+returns a Figure; saving is done by storage.save_figure.
 """
 
 import matplotlib.pyplot as plt
@@ -25,18 +24,10 @@ CITY_COLORS = {
 
 
 def plot_anomalies(anomalies: pd.DataFrame) -> Figure:
-    """Line plot of the yearly temperature anomaly of every city.
-
-    Parameters
-    ----------
-    anomalies : pandas.DataFrame
-        Output of ``annual_anomalies``.
-
-    Returns
-    -------
-    matplotlib.figure.Figure
-    """
+    """Line plot of the yearly temperature anomaly of every city."""
+    # One figure with one set of axis
     fig, ax = plt.subplots(figsize=(10, 5))
+    # One line per city, always with its own colour 
     for city, color in CITY_COLORS.items():
         data = anomalies[anomalies["city"] == city]
         ax.plot(data.index.year, data["anomaly"], color=color, label=city)
@@ -49,18 +40,9 @@ def plot_anomalies(anomalies: pd.DataFrame) -> Figure:
     ax.legend()
     return fig
 
+
 def plot_trends(trends: pd.DataFrame) -> Figure:
-    """Horizontal bar chart of the temperature trend of every city.
-
-    Parameters
-    ----------
-    trends : pandas.DataFrame
-        Output of ``trend_table``.
-
-    Returns
-    -------
-    matplotlib.figure.Figure
-    """
+    """Horizontal bar chart of the temperature trend of every city."""
     # Ascending order: barh draws the first bar at the bottom,
     # so the fastest-warming city ends up at the top
     data = trends.sort_values("slope_per_decade")
@@ -73,22 +55,15 @@ def plot_trends(trends: pd.DataFrame) -> Figure:
     ax.set_title(f"Temperature trend {START_YEAR}-{END_YEAR}")
     return fig
 
+
 def plot_hot_days(hot: pd.DataFrame) -> Figure:
-    """Line plot of the number of hot days per year in every city.
-
-    Parameters
-    ----------
-    hot : pandas.DataFrame
-        Output of ``hot_days_per_year``.
-
-    Returns
-    -------
-    matplotlib.figure.Figure
-    """
+    """Line plot of the number of hot days per year in every city."""
     fig, ax = plt.subplots(figsize=(10, 5))
+    # Wide table: years in the index, one column per city
     for city, color in CITY_COLORS.items():
         ax.plot(hot.index, hot[city], color=color, label=city)
 
+    # :g drops useless decimlas 
     title = f"Hot days per year (maximum ≥ {HOT_DAY_THRESHOLD:g} °C)"
     ax.set_xlabel("Year")
     ax.set_ylabel("Days")
@@ -96,21 +71,11 @@ def plot_hot_days(hot: pd.DataFrame) -> Figure:
     ax.legend()
     return fig
 
+
 def plot_warming_stripes(anomalies: pd.DataFrame, city: str) -> Figure:
     """Warming stripes of one city: one colored stripe per year.
 
     Blue years are colder and red years warmer than the climate normal.
-
-    Parameters
-    ----------
-    anomalies : pandas.DataFrame
-        Output of ``annual_anomalies``.
-    city : str
-        Name of the city, e.g. "Milan".
-
-    Returns
-    -------
-    matplotlib.figure.Figure
     """
     data = anomalies[anomalies["city"] == city]
     years = data.index.year
@@ -122,7 +87,7 @@ def plot_warming_stripes(anomalies: pd.DataFrame, city: str) -> Figure:
     fig, ax = plt.subplots(figsize=(10, 2))
     ax.imshow(
         values[np.newaxis, :],  # 1 row x N years, drawn as an image
-        cmap="RdBu_r",
+        cmap="RdBu_r",  # reversed colormap: warm = red
         vmin=-limit,
         vmax=limit,
         aspect="auto",
@@ -134,22 +99,11 @@ def plot_warming_stripes(anomalies: pd.DataFrame, city: str) -> Figure:
 
 
 def plot_monthly_heatmap(monthly: pd.DataFrame, city: str) -> Figure:
-    """Heatmap of the monthly mean temperature of one city, year by month.
-
-    Parameters
-    ----------
-    monthly : pandas.DataFrame
-        Output of ``to_monthly``.
-    city : str
-        Name of the city, e.g. "Milan".
-
-    Returns
-    -------
-    matplotlib.figure.Figure
-    """
+    """Heatmap of the monthly mean temperature of one city (year x month)."""
     table = monthly_pivot(monthly, city)  # one row per year, one per month
 
     fig, ax = plt.subplots(figsize=(7, 10))
+    # seaborn draws the heatmap on our ax, with a color bar 
     sns.heatmap(
         table,
         cmap="Reds",
