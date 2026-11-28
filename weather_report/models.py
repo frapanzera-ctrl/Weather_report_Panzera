@@ -24,7 +24,7 @@ class City:
             raise ValueError(
                 f"Invalid longitude for {self.name}: {self.longitude}"
             )
-     
+
     # Read like an attribute (city.slug), used to name the data files
     @property
     def slug(self) -> str:
