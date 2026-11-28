@@ -1,8 +1,8 @@
 # 🌡️ Weather_report_Panzera
-Is the climate really changing? Is the global warming a real thing we should be concerd about? 
-This project analyze the weather in 5 cities (Milan, Palermo, Berlin, London, Madrid) trying to find some key elemnts to
+Is the climate really changing? Is the global warming a real thing we should be concerned about? 
+This project analyze the weather in 5 cities (Milan, Palermo, Berlin, London, Madrid) trying to find some key elements to
 better understand the situation. In the period between 1940 and 2025 I want to highlits temperature trends, anomalies, 
-extrem events and comparison between cities to better understand how the climate is changing around us.
+extreme events and comparison between cities to better understand how the climate is changing around us.
 
 Weather Report downloads 86 years of daily weather data for five European cities
 and checks, with statistics and charts, whether their climate is really changing.
