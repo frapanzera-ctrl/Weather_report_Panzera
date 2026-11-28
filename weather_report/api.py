@@ -19,7 +19,7 @@ from weather_report.models import City
 
 
 class WeatherAPIError(Exception):
-     """Raised when the data of a city cannot be downloaded."""
+    """Raised when the data of a city cannot be downloaded."""
 
 
 def build_params(
@@ -52,7 +52,6 @@ def fetch_daily_weather(
     """
     params = build_params(city, start_date, end_date)
 
-    
     # 1. Send the request: network problems, timeouts and HTTP errors
     #    (4xx, 5xx) all become a WeatherAPIError
     try:
@@ -64,7 +63,6 @@ def fetch_daily_weather(
         raise WeatherAPIError(
             f"Could not download data for {city.name}: {error}"
         ) from error
-    
 
     # 2. Read the JSON and check that the "daily" block is there
     try:

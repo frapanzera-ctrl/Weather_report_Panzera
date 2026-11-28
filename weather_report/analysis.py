@@ -20,7 +20,8 @@ def city_summary(
 ) -> pd.DataFrame:
     """Mean, standard deviation, min and max of one variable per city."""
     # Split by city, compute the four statistics, round for reading
-    summary = daily.groupby("city")[variable].agg(["mean", "std", "min", "max"])
+    summary = daily.groupby("city")[variable].agg(
+        ["mean", "std", "min", "max"])
     return summary.round(2)
 
 
@@ -42,7 +43,7 @@ def annual_anomalies(
     # (map gives each row the normal of its own city)
     normals = annual[in_period].groupby("city")[variable].mean()
     anomaly = annual[variable] - annual["city"].map(normals)
-    # Keep only the city and the anomaly columns 
+    # Keep only the city and the anomaly columns
     return annual.assign(anomaly=anomaly.round(2))[["city", "anomaly"]]
 
 

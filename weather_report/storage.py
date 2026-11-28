@@ -4,7 +4,7 @@ Raw data are downloaded only when their CSV file is missing. Cleaning
 and analysis happen in processing.py and analysis.py.
 """
 
-import time 
+import time
 from pathlib import Path
 
 import pandas as pd
@@ -22,11 +22,12 @@ from weather_report.config import (
     TABLES_DIR,
     REQUEST_PAUSE,
     START_DATE,
-)    
+)
 from weather_report.models import City
 
+
 class StorageError(Exception):
-    """Raised when a raw CSV filecannot be read."""
+    """Raised when a raw CSV file cannot be read."""
 
 
 def response_to_dataframe(data: dict) -> pd.DataFrame:

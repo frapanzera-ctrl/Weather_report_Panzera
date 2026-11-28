@@ -2,6 +2,7 @@
 
 from dataclasses import dataclass
 
+
 # frozen=True: a City cannot be changed after it is created
 @dataclass(frozen=True)
 class City:
@@ -23,10 +24,9 @@ class City:
             raise ValueError(
                 f"Invalid longitude for {self.name}: {self.longitude}"
             )
-        
-    # Read like an attribute (city.slug), used to name the data files    
+     
+    # Read like an attribute (city.slug), used to name the data files
     @property
     def slug(self) -> str:
         """Return the name in a form usable in file names (e.g. "milan")"""
         return self.name.lower().replace(" ", "_")
-    

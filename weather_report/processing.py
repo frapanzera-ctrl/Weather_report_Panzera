@@ -21,7 +21,6 @@ def clean_city(df: pd.DataFrame) -> pd.DataFrame:
     cleaned = df.assign(time=pd.to_datetime(df["time"], format="%Y-%m-%d"))
     cleaned = cleaned.set_index("time").sort_index()
 
-
     # One row per day: missing days become rows of NaN
     return cleaned.asfreq("D")
 
