@@ -25,9 +25,9 @@ CITY_COLORS = {
 
 def plot_anomalies(anomalies: pd.DataFrame) -> Figure:
     """Line plot of the yearly temperature anomaly of every city."""
-    # One figure with one set of axis
+    # One figure with one set of axes
     fig, ax = plt.subplots(figsize=(10, 5))
-    # One line per city, always with its own colour
+    # One line per city, always with its own color
     for city, color in CITY_COLORS.items():
         data = anomalies[anomalies["city"] == city]
         ax.plot(data.index.year, data["anomaly"], color=color, label=city)
@@ -103,7 +103,7 @@ def plot_monthly_heatmap(monthly: pd.DataFrame, city: str) -> Figure:
     table = monthly_pivot(monthly, city)  # one row per year, one per month
 
     fig, ax = plt.subplots(figsize=(7, 10))
-    # seaborn draws the heatmap on our ax, with a color bar
+    # seaborn draws the heatmap on the ax, with a color bar
     sns.heatmap(
         table,
         cmap="Reds",

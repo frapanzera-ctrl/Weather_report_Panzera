@@ -11,7 +11,6 @@ import pandas as pd
 # Figure is only used as a type hint in save_figure
 from matplotlib.figure import Figure
 
-
 from weather_report.api import fetch_daily_weather
 from weather_report.config import (
     CITIES,

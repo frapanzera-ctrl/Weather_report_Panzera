@@ -28,5 +28,5 @@ class City:
     # Read like an attribute (city.slug), used to name the data files
     @property
     def slug(self) -> str:
-        """Return the name in a form usable in file names (e.g. "milan")"""
+        """Return the name in a form usable in file names (e.g. "milan")."""
         return self.name.lower().replace(" ", "_")
